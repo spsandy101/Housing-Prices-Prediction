@@ -39,7 +39,7 @@ plot(pairs(house_data[,c(2,14:24)]))
 
 names(house_data)
 
-# Random Forest
+## 1. Random Forest
 library(randomForest)
 model=randomForest(Price ~ Date_id + Postcode_id + Property_Type_id + Old_New_id + Duration_id 
                    + Street_id + Locality_id + Town_id + District_id + County_id + 
@@ -54,12 +54,43 @@ price1=predict(model, row1[14:24])
 price1
 
 
-#Regression
-model=glm(Price ~ Date_id + Postcode_id + Property_Type_id + Old_New_id + Duration_id 
-          + Street_id + Locality_id + Town_id + District_id + County_id + 
-            PPD_Category_Type_id, data = house_training, na.action=na.omit)
-model
+## 2. Regression
 
+# Backward elimination
+step(glm(Price ~ Date_id + Postcode_id + Property_Type_id + Old_New_id + Duration_id 
+         + Street_id + Locality_id + Town_id + District_id + County_id + 
+           PPD_Category_Type_id, data = house_training), direction = "backward")
+
+model=glm(Price ~ Date_id + Postcode_id + Property_Type_id, data = house_training, na.action=na.omit)
+model
+## Prediction
+house_test$Price=predict(model, house_test[14:24])
+
+row1= data.frame(filter(house_test, ID==99563))
+price1=predict(model, row1[14:24])
+price1
+
+# Forward selection
+step(glm(Price~1, data = house_training), direction = "forward",
+     scope =~ Date_id + Postcode_id + Property_Type_id + Old_New_id + Duration_id 
+     + Street_id + Locality_id + Town_id + District_id + County_id + PPD_Category_Type_id)
+
+model=glm(Price ~ Date_id + County_id + Property_Type_id, data = house_training, na.action=na.omit)
+model
+## Prediction
+house_test$Price=predict(model, house_test[14:24])
+
+row1= data.frame(filter(house_test, ID==99563))
+price1=predict(model, row1[14:24])
+price1
+
+# Stepwise selection
+step(glm(Price ~ Date_id + Postcode_id + Property_Type_id + Old_New_id + Duration_id 
+         + Street_id + Locality_id + Town_id + District_id + County_id + 
+           PPD_Category_Type_id, data = house_training), direction = "both")
+
+model=glm(Price ~ Date_id + Postcode_id + Property_Type_id, data = house_training, na.action=na.omit)
+model
 ## Prediction
 house_test$Price=predict(model, house_test[14:24])
 
